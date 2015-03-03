@@ -9,50 +9,37 @@ import org.apache.http.impl.client.DefaultHttpClient;
 
  
 /**
+ * Class which only contains ThreadLocal related operations
  * 
- * @author Waynewym
- *
+ * @author Waynner
  */
-class HttpClientUtil {
+class HttpClientUtil { 
 
 	/**
-	 * 希望可以讓不同的Thread, 取得到不同的HttpClient物件 換言之, 同Thread也會取到同一httpClient object
+	 * 希望可以讓不同的Thread, 取得到不同的HttpClient物件. 
+	 * 換言之, 同Thread也會取到同一httpClient object
 	 */
 	public static ThreadLocal<HttpClient> local = new ThreadLocal<HttpClient>();
 
+	/*
+	 * Get object in ThreadLocal
+	 */
 	public static HttpClient getLocal() {
 		return local.get();
 	}
 
+	/*
+	 * Set object in ThreadLocal
+	 */
 	public static void setLocal(HttpClient httpClient) {
 		local.set(httpClient);
 	}
 }
 
-public class Test_LocalThread {
-	/**
-	 * Main Enter
-	 * @param args
-	 */
-	public static void main(String[] args) {
-
-		ThreadTest tt = new ThreadTest();
-
-		Thread t1 = new Thread(tt, "thread 1");
-		Thread t2 = new Thread(tt, "thread 2");
-		// Thread t3=new Thread(tt,"thread 3");
-
-		// t1.setPriority(Thread.MAX_PRIORITY);
-		t1.start(); // Thread 1 to Call run()
-		t2.start(); // Thread 2 to Call run()
-		// t3.start();
-	}
-}
 
 /**
  * 
  * @author Waynner
- * 
  */
 class ThreadTest implements Runnable {
 
@@ -66,12 +53,10 @@ class ThreadTest implements Runnable {
 		HttpClient client = HttpClientUtil.getLocal();
 		if (client == null) {
 			HttpClientUtil.setLocal(new DefaultHttpClient(null, null));
-			System.out.println(currentThread + " HttpClient equals null");
+			System.out.println(currentThread + " set the httpClient into Threadlocal");
 		} else {
-			System.out
-					.println("This thread had HttpClient obj in ThreadLocal pool");
+			System.out.println( currentThread + " thread already had HttpClient obj in ThreadLocal pool");
 		}
-		// System.out.println( "ThreadLocal Get: " + client );
 	}
 
 	@Override
@@ -80,5 +65,24 @@ class ThreadTest implements Runnable {
 		testMethod(); // First time is to set the HttpClient in ThreadLocal
 		testMethod(); // Second time is to check the effect by threadLocal
 	}
-
 }
+
+
+
+public class Test_LocalThread {
+	
+	public static void main(String[] args) {
+
+		ThreadTest tt = new ThreadTest();
+
+		Thread t1 = new Thread(tt, "thread 1");
+		Thread t2 = new Thread(tt, "thread 2");
+		// Thread t3=new Thread(tt,"thread 3");
+
+		// t1.setPriority(Thread.MAX_PRIORITY);
+		t1.start(); // Thread 1 to Call run() in ThreadTest class
+		t2.start(); // Thread 2 to Call run() in ThreadTest class
+		// t3.start();
+	}
+}
+
